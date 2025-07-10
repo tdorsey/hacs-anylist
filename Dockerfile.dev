@@ -1,0 +1,105 @@
+# Multi-stage Dockerfile for HACS AnyList - Development Environment
+# This Dockerfile is designed to support the TypeScript conversion project
+# and provides a development environment with debugging and hot reload capabilities.
+#
+# Related to TypeScript conversion issue: #1
+
+# Base Node.js image with Alpine Linux for minimal size
+FROM node:18-alpine AS base
+LABEL maintainer="HACS AnyList Team"
+LABEL description="HACS AnyList Development Container"
+LABEL version="1.0.0"
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies required for native modules and development tools
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git \
+    curl \
+    bash \
+    # Additional tools for development
+    vim \
+    nano \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S hacs -u 1001 -G nodejs
+
+# Development stage with full debugging capabilities
+FROM base AS development
+
+# Install additional development dependencies
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    && rm -rf /var/cache/apk/*
+
+# Set environment for Puppeteer (if needed for testing)
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Copy package files first to leverage Docker layer caching
+COPY package*.json ./
+COPY tsconfig*.json ./
+COPY .eslintrc* ./
+COPY .prettierrc* ./
+
+# Install ALL dependencies (including devDependencies)
+RUN npm ci --include=dev
+
+# Copy source code
+COPY . .
+
+# Change ownership to non-root user
+RUN chown -R hacs:nodejs /app
+USER hacs
+
+# Expose ports for development server and debugging
+EXPOSE 3000 9229
+
+# Health check for development
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:3000/health || exit 1
+
+# Default command for development (with hot reload)
+CMD ["npm", "run", "dev"]
+
+# Development tools stage (optional, for utilities)
+FROM development AS dev-tools
+
+# Switch back to root to install additional tools
+USER root
+
+# Install additional development and debugging tools
+RUN npm install -g \
+    nodemon \
+    ts-node \
+    typescript \
+    @types/node \
+    jest \
+    eslint \
+    prettier \
+    && rm -rf /root/.npm/_cacache
+
+# Install useful CLI tools
+RUN apk add --no-cache \
+    htop \
+    tree \
+    jq \
+    && rm -rf /var/cache/apk/*
+
+# Switch back to non-root user
+USER hacs
+
+# Keep container running for utility purposes
+CMD ["tail", "-f", "/dev/null"]

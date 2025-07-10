@@ -1,0 +1,167 @@
+# Docker Compose configuration for HACS AnyList - Production Environment
+# This configuration overrides development settings for production deployment
+# 
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Related to TypeScript conversion issue: #1
+
+services:
+  # Production overrides for main application
+  hacs-anylist:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: hacs-anylist-prod
+    ports:
+      - "80:3000"      # Map container port 3000 to host port 80
+    volumes:
+      # Remove source code volume mount (no hot reload in production)
+      - /app/node_modules
+      # Only mount necessary config files
+      - ${HOME_ASSISTANT_CONFIG_PATH:-./config}:/config:ro  # Read-only config
+      # Mount logs directory for persistence  
+      - ./logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - DEBUG=  # Disable debug logging in production
+      # Security settings
+      - HELMET_ENABLED=true
+      - CORS_ORIGIN=${CORS_ORIGIN:-false}
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      # Performance settings
+      - CLUSTER_WORKERS=${CLUSTER_WORKERS:-0}  # 0 = auto-detect CPU cores
+      - CACHE_TTL=${CACHE_TTL:-3600}
+      # Home Assistant settings (production)
+      - HASS_SERVER_HOST=${HASS_SERVER_HOST}
+      - HASS_SERVER_PORT=${HASS_SERVER_PORT:-8123}
+      - HASS_TOKEN=${HASS_TOKEN}
+      # AnyList settings (production)
+      - ANYLIST_SERVER_ADDR=${ANYLIST_SERVER_ADDR}
+      - ANYLIST_DEFAULT_LIST=${ANYLIST_DEFAULT_LIST:-Shopping}
+    env_file:
+      - .env              # Load base environment variables
+      - .env.production   # Production-specific overrides
+    restart: always  # Always restart in production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 15s      # More frequent health checks in production
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - hacs-anylist-network
+    depends_on:
+      - redis
+      - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 1G      # Higher memory limit for production
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '1.0'
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/tmp
+
+  # Production Redis configuration
+  redis:
+    container_name: hacs-anylist-redis-prod
+    ports: []  # Don't expose Redis port in production
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}  # Required in production
+    command: >
+      redis-server
+      --appendonly yes
+      --save 900 1
+      --save 300 10  
+      --save 60 10000
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory ${REDIS_MAX_MEMORY:-256mb}
+      --maxmemory-policy allkeys-lru
+    restart: always
+    healthcheck:
+      interval: 15s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # Production PostgreSQL configuration  
+  postgres:
+    container_name: hacs-anylist-postgres-prod
+    ports: []  # Don't expose PostgreSQL port in production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Remove init script volume (should be handled by migrations)
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+      # Performance tuning
+      - POSTGRES_SHARED_PRELOAD_LIBRARIES=pg_stat_statements
+      - POSTGRES_MAX_CONNECTIONS=${POSTGRES_MAX_CONNECTIONS:-100}
+      - POSTGRES_WORK_MEM=${POSTGRES_WORK_MEM:-4MB}
+      - POSTGRES_MAINTENANCE_WORK_MEM=${POSTGRES_MAINTENANCE_WORK_MEM:-64MB}
+    restart: always
+    healthcheck:
+      interval: 15s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # Remove dev-tools service (not needed in production)
+  dev-tools:
+    profiles:
+      - disabled
+
+# Production volume configuration
+volumes:
+  redis_data:
+    driver: local
+    name: hacs-anylist-redis-data-prod
+  postgres_data:
+    driver: local
+    name: hacs-anylist-postgres-data-prod
+
+# Production network configuration
+networks:
+  hacs-anylist-network:
+    driver: bridge
+    name: hacs-anylist-network-prod
