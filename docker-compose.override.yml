@@ -1,0 +1,75 @@
+# Docker Compose override for development environment
+# Extends the base docker-compose.yml with development-specific configurations
+
+services:
+  hacs-anylist-dev:
+    environment:
+      # Development-specific environment variables
+      NODE_ENV: development
+      DEBUG: "anylist:*,express:*"
+      LOG_LEVEL: debug
+      WATCH_FILES: "true"
+      HOT_RELOAD: "true"
+    volumes:
+      # Additional development volumes for better DX
+      - .:/app:cached
+      - /app/node_modules
+      - /app/dist
+      - ~/.npm:/home/nextjs/.npm:cached
+    command: ["npm", "run", "dev:watch"]
+    stdin_open: true
+    tty: true
+    # Development-specific labels
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.anylist-dev.rule=Host(`anylist-dev.localhost`)"
+      - "traefik.http.services.anylist-dev.loadbalancer.server.port=3000"
+
+  # Development database for testing
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: hacs-anylist-postgres-dev
+    environment:
+      POSTGRES_DB: anylist_dev
+      POSTGRES_USER: anylist
+      POSTGRES_PASSWORD: development_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - anylist-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U anylist -d anylist_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - development
+      - database
+
+  # Development tools container
+  dev-tools:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: hacs-anylist-dev-tools
+    environment:
+      NODE_ENV: development
+    volumes:
+      - .:/app:cached
+      - /app/node_modules
+    command: ["tail", "-f", "/dev/null"]
+    networks:
+      - anylist-network
+    profiles:
+      - development
+      - tools
+
+volumes:
+  postgres-dev-data:
+    driver: local
+    name: anylist-postgres-dev-data

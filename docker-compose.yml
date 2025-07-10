@@ -1,0 +1,136 @@
+# Docker Compose configuration for HACS Anylist TypeScript Project
+# Modern Docker Compose specification with support for development and production environments
+
+# Shared configuration
+x-common-variables: &common-variables
+  NODE_ENV: ${NODE_ENV:-development}
+  ANYLIST_EMAIL: ${ANYLIST_EMAIL}
+  ANYLIST_PASSWORD: ${ANYLIST_PASSWORD}
+  ANYLIST_SERVER_PORT: ${ANYLIST_SERVER_PORT:-3000}
+
+x-healthcheck: &default-healthcheck
+  test: ["CMD", "node", "--version"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 30s
+
+services:
+  # Development service
+  hacs-anylist-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        NODE_ENV: development
+    container_name: hacs-anylist-dev
+    environment:
+      <<: *common-variables
+      NODE_ENV: development
+      DEBUG: "anylist:*"
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Debug port
+    volumes:
+      # Hot reload support - mount source code
+      - .:/app
+      - /app/node_modules  # Prevent overwriting node_modules
+      - /app/dist          # Prevent overwriting dist
+    networks:
+      - anylist-network
+    healthcheck:
+      <<: *default-healthcheck
+    restart: unless-stopped
+    profiles:
+      - development
+      - dev
+
+  # Production service
+  hacs-anylist-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        NODE_ENV: production
+    container_name: hacs-anylist-prod
+    environment:
+      <<: *common-variables
+      NODE_ENV: production
+    ports:
+      - "3001:3000"
+    networks:
+      - anylist-network
+    healthcheck:
+      <<: *default-healthcheck
+    restart: always
+    profiles:
+      - production
+      - prod
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Home Assistant service for integration testing
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: hacs-anylist-homeassistant
+    environment:
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./config:/config
+      - ./custom_components:/config/custom_components
+      - ./custom_sentences:/config/custom_sentences
+    ports:
+      - "8123:8123"
+    networks:
+      - anylist-network
+    depends_on:
+      - hacs-anylist-dev
+      - hacs-anylist-prod
+    restart: unless-stopped
+    profiles:
+      - testing
+      - integration
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: hacs-anylist-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-anylist123}
+    volumes:
+      - redis-data:/data
+    networks:
+      - anylist-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    profiles:
+      - development
+      - production
+      - caching
+
+# Networks
+networks:
+  anylist-network:
+    driver: bridge
+    name: anylist-network
+
+# Volumes
+volumes:
+  redis-data:
+    driver: local
+    name: anylist-redis-data

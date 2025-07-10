@@ -1,0 +1,133 @@
+# Docker Compose configuration for production environment
+# Optimized for production deployment with security and performance focus
+
+services:
+  hacs-anylist-prod:
+    environment:
+      # Production environment variables
+      NODE_ENV: production
+      LOG_LEVEL: info
+      ENABLE_METRICS: "true"
+    # Production-specific resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    # Enhanced security for production
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /var/cache:noexec,nosuid,size=50m
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Production-specific labels
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.anylist-prod.rule=Host(`anylist.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.anylist-prod.tls=true"
+      - "traefik.http.routers.anylist-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.services.anylist-prod.loadbalancer.server.port=3000"
+
+  # Production database
+  postgres-prod:
+    image: postgres:15-alpine
+    container_name: hacs-anylist-postgres-prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-anylist}
+      POSTGRES_USER: ${POSTGRES_USER:-anylist}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres-prod-data:/var/lib/postgresql/data
+      - ./backups:/backups:ro
+    networks:
+      - anylist-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-anylist} -d ${POSTGRES_DB:-anylist}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: always
+    profiles:
+      - production
+      - database
+
+  # Nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    container_name: hacs-anylist-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./ssl:/etc/ssl:ro
+    depends_on:
+      - hacs-anylist-prod
+    networks:
+      - anylist-network
+    restart: always
+    profiles:
+      - production
+      - proxy
+
+  # Production monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: hacs-anylist-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - anylist-network
+    restart: unless-stopped
+    profiles:
+      - production
+      - monitoring
+
+volumes:
+  postgres-prod-data:
+    driver: local
+    name: anylist-postgres-prod-data
+  prometheus-data:
+    driver: local
+    name: anylist-prometheus-data

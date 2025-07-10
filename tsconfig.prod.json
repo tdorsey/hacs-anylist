@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    /* Production-optimized settings */
+    "sourceMap": false,
+    "declaration": false,
+    "declarationMap": false,
+    "removeComments": true,
+    
+    /* Optimization */
+    "incremental": false,
+    "tsBuildInfoFile": null
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "tests",
+    "src/**/__tests__",
+    "src/**/__mocks__"
+  ]
+}
