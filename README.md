@@ -3,6 +3,47 @@
 ## Prerequisites
 This integration requires [Home Assistant Addon For Anylist](https://github.com/kevdliu/hassio-addon-anylist). Please install and configure the addon first before setting up this integration.
 
+## TypeScript SDK
+
+This repository now includes a modern TypeScript SDK for developers who want to interact with the Anylist integration programmatically. The SDK provides type-safe interfaces and supports both CommonJS and ES modules.
+
+### Installation
+
+```bash
+npm install @tdorsey/hacs-anylist
+```
+
+### Usage
+
+```typescript
+import { createAnylistClient } from '@tdorsey/hacs-anylist';
+
+const client = createAnylistClient({
+  serverAddr: 'http://127.0.0.1:28597',
+  defaultList: 'Shopping'
+});
+
+// Add items
+await client.addItem({ name: 'Milk', notes: 'Organic' });
+
+// Get items
+const items = await client.getItems();
+console.log('Shopping list:', items.items);
+
+// Check items
+await client.checkItem({ name: 'Milk' });
+```
+
+### TypeScript Features
+
+- **Dual Module Support**: Works with both CommonJS (`require()`) and ES modules (`import`)
+- **Full Type Safety**: Complete TypeScript definitions for all API methods
+- **Modern Build**: Built with [tsup](https://tsup.egoist.dev/) for optimal performance
+- **Tree Shaking**: Only include the code you use
+- **Source Maps**: Full debugging support
+
+See the [TypeScript Configuration Documentation](./docs/typescript-config.md) for detailed information about the build setup and configuration decisions.
+
 ## Installation
 You can install this custom integration using [HACS](https://hacs.xyz/). It is not a part of the official list of repositories but you can add it as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories/).
 
