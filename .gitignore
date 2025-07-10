@@ -1,1 +1,18 @@
 __pycache__
+
+# Node.js / TypeScript
+node_modules/
+dist/
+coverage/
+*.log
+.env
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
