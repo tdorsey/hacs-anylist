@@ -1,0 +1,12 @@
+dist/
+node_modules/
+coverage/
+*.min.js
+*.bundle.js
+package-lock.json
+yarn.lock
+.git/
+.github/
+custom_components/
+custom_sentences/
+*.md
