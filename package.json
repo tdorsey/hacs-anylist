@@ -1,0 +1,73 @@
+{
+  "name": "hacs-anylist",
+  "version": "1.5.9",
+  "description": "Home Assistant integration for Anylist",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "custom_components",
+    "custom_sentences",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run build:clean && npm run build:types && npm run build:esm && npm run build:cjs",
+    "build:clean": "rimraf dist",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist/types",
+    "build:esm": "tsc --module esnext --outDir dist/esm",
+    "build:cjs": "tsc --module commonjs --outDir dist/cjs && echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "home-assistant",
+    "anylist",
+    "hacs",
+    "integration",
+    "typescript"
+  ],
+  "author": "Kevin Liu",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tdorsey/hacs-anylist.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tdorsey/hacs-anylist/issues"
+  },
+  "homepage": "https://github.com/tdorsey/hacs-anylist#readme",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.1",
+    "jest": "^29.5.0",
+    "rimraf": "^5.0.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
