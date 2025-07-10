@@ -1,5 +1,7 @@
 # Home Assistant Integration For Anylist
 
+> **Note**: This project is currently being converted to TypeScript (see issue #1). The TypeScript library structure is available in the `src/` directory while the existing Python integration remains in `custom_components/`. See [TYPESCRIPT.md](TYPESCRIPT.md) for development details.
+
 ## Prerequisites
 This integration requires [Home Assistant Addon For Anylist](https://github.com/kevdliu/hassio-addon-anylist). Please install and configure the addon first before setting up this integration.
 
