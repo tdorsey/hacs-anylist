@@ -1,0 +1,37 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "schedule": ["before 9am on Monday"],
+  "timezone": "UTC",
+  "labels": ["dependencies"],
+  "assignees": ["tdorsey"],
+  "separateMajorMinor": true,
+  "separateMultipleMajor": true,
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 5,
+  "packageRules": [
+    {
+      "groupName": "TypeScript and related",
+      "packagePatterns": ["typescript", "@types/", "ts-", "eslint", "prettier"],
+      "schedule": ["before 9am on Monday"]
+    },
+    {
+      "groupName": "Testing packages",
+      "packagePatterns": ["jest", "@types/jest", "ts-jest"],
+      "schedule": ["before 9am on Monday"]
+    },
+    {
+      "groupName": "GitHub Actions",
+      "managers": ["github-actions"],
+      "separateMinorPatch": true
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 9am on Monday"]
+  }
+}

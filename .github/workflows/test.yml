@@ -1,0 +1,64 @@
+name: Workflow Test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/**'
+
+jobs:
+  test-workflows:
+    name: Test Workflow Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+    - name: Setup Node.js
+      uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Verify package.json scripts
+      run: |
+        echo "Testing package.json scripts..."
+        npm run lint --if-present
+        npm run type-check --if-present
+        npm run test --if-present
+        npm run build --if-present
+
+    - name: Check file structure
+      run: |
+        echo "Checking TypeScript project structure..."
+        test -f tsconfig.json && echo "✓ tsconfig.json exists"
+        test -f .eslintrc.js && echo "✓ .eslintrc.js exists"
+        test -f .prettierrc && echo "✓ .prettierrc exists"
+        test -f jest.config.js && echo "✓ jest.config.js exists"
+        test -f .releaserc.json && echo "✓ .releaserc.json exists"
+        test -d src && echo "✓ src directory exists"
+        test -d .github/workflows && echo "✓ .github/workflows directory exists"
+
+    - name: List workflow files
+      run: |
+        echo "GitHub Actions workflows:"
+        ls -la .github/workflows/
+
+    - name: Validate workflow syntax
+      run: |
+        echo "All workflow files should be valid YAML..."
+        for file in .github/workflows/*.yml; do
+          echo "Checking $file..."
+          python -c "import yaml; yaml.safe_load(open('$file'))" && echo "✓ $file is valid YAML"
+        done
+
+    - name: Display project info
+      run: |
+        echo "Project setup completed successfully!"
+        echo "Node.js version: $(node --version)"
+        echo "NPM version: $(npm --version)"
+        echo "TypeScript version: $(npx tsc --version)"

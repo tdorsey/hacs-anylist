@@ -1,5 +1,67 @@
 # Home Assistant Integration For Anylist
 
+[![CI](https://github.com/tdorsey/hacs-anylist/actions/workflows/ci.yml/badge.svg)](https://github.com/tdorsey/hacs-anylist/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/tdorsey/hacs-anylist/branch/main/graph/badge.svg)](https://codecov.io/gh/tdorsey/hacs-anylist)
+[![npm version](https://badge.fury.io/js/hacs-anylist.svg)](https://badge.fury.io/js/hacs-anylist)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+> **Note**: This integration is currently being converted from Python to TypeScript. The TypeScript version is available as an npm package for development and testing purposes.
+
+## Development
+
+### TypeScript Version
+
+This project includes a TypeScript implementation alongside the original Python integration. The TypeScript version serves as the foundation for future development and provides type safety and modern tooling.
+
+#### Prerequisites
+
+- Node.js 16.x, 18.x, or 20.x
+- npm (comes with Node.js)
+
+#### Getting Started
+
+```bash
+# Clone the repository
+git clone https://github.com/tdorsey/hacs-anylist.git
+cd hacs-anylist
+
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Build the project
+npm run build
+
+# Run linting
+npm run lint
+
+# Run type checking
+npm run type-check
+```
+
+#### Available Scripts
+
+- `npm run build` - Compile TypeScript to JavaScript
+- `npm run build:watch` - Watch for changes and rebuild
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Run ESLint and fix issues
+- `npm run type-check` - Run TypeScript type checking
+- `npm run test` - Run Jest tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage report
+
+### CI/CD
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+- **CI Pipeline**: Runs on Node.js 16.x, 18.x, and 20.x with automated linting, type checking, testing, and building
+- **Security**: Automated dependency scanning, vulnerability audits, and CodeQL analysis
+- **Release Management**: Semantic versioning with automated changelog generation
+- **NPM Publishing**: Automated publishing to npm registry with provenance
+- **Code Coverage**: Integration with Codecov for coverage reporting
+
 ## Prerequisites
 This integration requires [Home Assistant Addon For Anylist](https://github.com/kevdliu/hassio-addon-anylist). Please install and configure the addon first before setting up this integration.
 
