@@ -31,7 +31,8 @@ await client.addItem({
 
 [📚 **Full TypeScript Documentation**](docs/typescript.md)  
 [🔄 **Migration Guide**](docs/migration.md)  
-[💡 **TypeScript Examples**](docs/examples.md)
+[💡 **TypeScript Examples**](docs/examples.md)  
+[📋 **Changelog & Progress**](CHANGELOG.md)
 
 ---
 

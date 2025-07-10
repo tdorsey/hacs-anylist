@@ -25,6 +25,13 @@ This directory contains comprehensive documentation for the AnyList integration,
   - React Native mobile app
   - Testing examples
 
+- **[Project Configuration](project-config.md)** - Example configuration files for TypeScript setup
+  - package.json with dual module support
+  - TypeScript configuration files
+  - ESLint, Prettier, Jest setup
+  - GitHub Actions workflows
+  - Docker configuration
+
 ### Current Python/Home Assistant Documentation
 
 The main [README.md](../README.md) contains documentation for the current Python-based Home Assistant integration, including:
