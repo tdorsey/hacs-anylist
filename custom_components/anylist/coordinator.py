@@ -91,9 +91,7 @@ STEP_BINARY_DATA_SCHEMA = vol.Schema(
             TextSelectorConfig(type=TextSelectorType.TEXT)
         ),
         vol.Required(CONF_EMAIL): TextSelector(
-            TextSelectorConfig(
-                type=TextSelectorType.EMAIL, autocomplete="email"
-            )
+            TextSelectorConfig(type=TextSelectorType.EMAIL, autocomplete="email")
         ),
         vol.Required(CONF_PASSWORD): TextSelector(
             TextSelectorConfig(
@@ -309,7 +307,6 @@ STEP_INIT_DATA_SCHEMA = vol.Schema(
 
 
 class ConfigFlow(config_entries.ConfigFlow):
-
     VERSION = 1
 
     async def async_step_user(self, user_input):
@@ -343,9 +340,7 @@ class ConfigFlow(config_entries.ConfigFlow):
                         entry=self._get_reconfigure_entry(), data=user_input
                     )
                 else:
-                    return self.async_create_entry(
-                        title="Anylist", data=user_input
-                    )
+                    return self.async_create_entry(title="Anylist", data=user_input)
 
         return self.async_show_form(
             step_id="addon", data_schema=STEP_ADDON_DATA_SCHEMA, errors=errors
@@ -402,7 +397,6 @@ class ConfigFlow(config_entries.ConfigFlow):
 
 
 class OptionsFlow(config_entries.OptionsFlow):
-
     async def async_step_init(self, user_input):
         if user_input is not None:
             return self.async_create_entry(data=user_input)
@@ -413,4 +407,7 @@ class OptionsFlow(config_entries.OptionsFlow):
                 STEP_INIT_DATA_SCHEMA, self.config_entry.options
             ),
         )
+<<<<<<< HEAD
 >>>>>>> 43ef543 (wip)
+=======
+>>>>>>> 452fc9a (wip)
