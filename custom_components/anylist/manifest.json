@@ -1,6 +1,6 @@
 {
   "domain": "anylist",
-  "name": "AnyList",
+  "name": "anylist",
   "codeowners": ["@tdorsey"],
   "config_flow": true,
   "dependencies": [],
