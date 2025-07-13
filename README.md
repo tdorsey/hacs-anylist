@@ -1,6 +1,43 @@
-# Home Assistant Integration For Anylist
+# AnyList Integration
 
-## Prerequisites
+A comprehensive integration for AnyList that supports both Home Assistant (Python) and TypeScript/Node.js environments.
+
+> **🚀 TypeScript Conversion in Progress**: This project is being converted to TypeScript to provide better type safety and cross-platform support. See [Issue #1](https://github.com/tdorsey/hacs-anylist/issues/1) for progress updates and [TypeScript Documentation](docs/typescript.md) for usage examples.
+
+## Choose Your Integration
+
+### Home Assistant Integration (Current)
+
+For Home Assistant users, this integration provides a seamless way to manage AnyList items through Home Assistant's automation and UI systems.
+
+### TypeScript/Node.js Library (Coming Soon)
+
+For developers and Node.js applications, the TypeScript version provides a modern API with full type safety and extensive customization options.
+
+**Quick TypeScript Example:**
+```typescript
+import { AnyListClient } from '@hacs/anylist';
+
+const client = new AnyListClient({
+  serverUrl: 'http://127.0.0.1:1234'
+});
+
+await client.addItem({
+  name: 'milk',
+  notes: 'Skim milk', 
+  list: 'Shopping'
+});
+```
+
+[📚 **Full TypeScript Documentation**](docs/typescript.md)  
+[🔄 **Migration Guide**](docs/migration.md)  
+[💡 **TypeScript Examples**](docs/examples.md)  
+[📋 **Changelog & Progress**](CHANGELOG.md)
+
+---
+
+## Home Assistant Prerequisites
+
 This integration requires [Home Assistant Addon For Anylist](https://github.com/kevdliu/hassio-addon-anylist). Please install and configure the addon first before setting up this integration.
 
 ## Installation
@@ -198,3 +235,68 @@ By default, the integration will apply the "Other" category to added items. Howe
 
 ## Options
 The integration allows you to specify the name of the default Anylist list to use if none are specified in the service call. The default list name is also used for Home Assistant intents.
+
+---
+
+## 🔄 Migration to TypeScript
+
+This project is being converted to TypeScript to provide:
+
+- **Enhanced Type Safety**: Full TypeScript support with comprehensive type definitions
+- **Modern JavaScript**: ES6+ features, async/await patterns, and better error handling
+- **Cross-Platform Support**: Works in Node.js, browsers, and various JavaScript environments
+- **Better Developer Experience**: IntelliSense, auto-completion, and compile-time error checking
+- **npm Ecosystem Access**: Leverage the full Node.js ecosystem
+
+### Migration Timeline
+
+The TypeScript conversion is happening in phases:
+
+- **Phase 1**: Infrastructure Setup (PRs #1-#4) ✅
+- **Phase 2**: TypeScript Configuration & Types (PRs #5-#6) ⏳
+- **Phase 3**: Code Conversion (PR #7) ⏳
+- **Phase 4**: Package & Build Setup (PR #8) ⏳
+- **Phase 5**: Testing & CI/CD (PRs #9-#10) ⏳
+- **Phase 6**: Documentation & Examples (PR #11) ⏳
+
+### Quick Migration Overview
+
+| Current (Python/HA) | Future (TypeScript) |
+|---------------------|---------------------|
+| Home Assistant Service Calls | Direct API Calls |
+| `anylist.add_item` | `client.addItem()` |
+| YAML Configuration | JavaScript/TypeScript Configuration |
+| Home Assistant Automations | Node.js Applications |
+
+### Getting Started with TypeScript
+
+Once the conversion is complete, usage will be:
+
+```bash
+npm install @hacs/anylist
+```
+
+```typescript
+import { AnyListClient } from '@hacs/anylist';
+
+const client = new AnyListClient({
+  serverUrl: 'http://127.0.0.1:1234',
+  defaultList: 'Shopping'
+});
+
+// Same functionality, better types!
+await client.addItem({ name: 'milk', notes: 'Skim milk' });
+const items = await client.getItems();
+```
+
+**[📖 Complete TypeScript Documentation](docs/typescript.md)**
+
+### Contributing to the TypeScript Conversion
+
+We welcome contributions to the TypeScript conversion! See [Issue #1](https://github.com/tdorsey/hacs-anylist/issues/1) for current progress and open tasks.
+
+---
+
+## Legacy Home Assistant Documentation
+
+> **Note**: The following documentation is for the current Python-based Home Assistant integration. This will remain supported during the TypeScript transition.
