@@ -2,8 +2,9 @@ import logging
 import os
 import stat
 
+# import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from homeassistant import config_entries
-
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
     NumberSelector,
@@ -14,17 +15,14 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
-
 from .const import (
-    DOMAIN,
-    CONF_SERVER_ADDR,
+    CONF_DEFAULT_LIST,
     CONF_EMAIL,
     CONF_PASSWORD,
-    CONF_SERVER_BINARY,
-    CONF_DEFAULT_LIST,
     CONF_REFRESH_INTERVAL,
+    CONF_SERVER_ADDR,
+    CONF_SERVER_BINARY,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(DOMAIN)
@@ -74,8 +72,8 @@ STEP_INIT_DATA_SCHEMA = vol.Schema(
 )
 
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-
+class ConfigFlow(config_entries.ConfigFlow):
+    DOMAIN = DOMAIN
     VERSION = 1
 
     async def async_step_user(self, user_input):
@@ -109,10 +107,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         entry=self._get_reconfigure_entry(), data=user_input
                     )
                 else:
-                    return self.async_create_entry(
-                        title="Anylist",
-                        data=user_input,
-                    )
+                    return self.async_create_entry(title="Anylist", data=user_input)
 
         return self.async_show_form(
             step_id="addon", data_schema=STEP_ADDON_DATA_SCHEMA, errors=errors
@@ -140,19 +135,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     return self.async_update_reload_and_abort(
                         entry=self._get_reconfigure_entry(), data=user_input
                     )
+                else:
                     return self.async_create_entry(
                         title="Anylist",
                         data=user_input,
                     )
-                    return self.async_create_entry(
-                        title="Anylist", 
-                        data=user_input
-            step_id="binary", 
-            data_schema=STEP_BINARY_DATA_SCHEMA, 
-            errors=errors
 
         return self.async_show_form(
-            step_id="binary", data_schema=STEP_BINARY_DATA_SCHEMA, errors=errors
+            step_id="binary",
+            data_schema=STEP_BINARY_DATA_SCHEMA,
+            errors=errors,
         )
 
     def verify_server_binary(self, path):
@@ -167,12 +159,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return None
 
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(self, config_entry):  # Added missing 'self'
         return OptionsFlow()
 
 
 class OptionsFlow(config_entries.OptionsFlow):
-
     async def async_step_init(self, user_input):
         if user_input is not None:
             return self.async_create_entry(data=user_input)
