@@ -22,7 +22,16 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 
-from .const import DOMAIN, CONF_DEFAULT_LIST, CONF_EMAIL, CONF_PASSWORD, CONF_REFRESH_INTERVAL, CONF_SERVER_ADDR, CONF_SERVER_BINARY
+from .const import (
+    CONF_DEFAULT_LIST,
+    CONF_EMAIL,
+    CONF_PASSWORD,
+    CONF_REFRESH_INTERVAL,
+    CONF_SERVER_ADDR,
+    CONF_SERVER_BINARY,
+    DOMAIN,
+)
+
     CONF_DEFAULT_LIST,
     CONF_EMAIL,
     CONF_PASSWORD,
@@ -33,34 +42,34 @@ from .const import DOMAIN, CONF_DEFAULT_LIST, CONF_EMAIL, CONF_PASSWORD, CONF_RE
 shopping_lists = (await self.client.get_shopping_lists()).items
 for shopping_list in shopping_lists:
         shopping_list_id = shopping_list.list_id
-    
+
         shopping_items = (
             await self.client.get_shopping_items(shopping_list_id)
         ).items
-    
+
         shopping_list_items[shopping_list_id] = ShoppingListData(
             shopping_list=shopping_list, items=shopping_items
         )
     return shopping_list_items
-    
-    
+
+
     class AnyListStatisticsCoordinator(AnyListDataUpdateCoordinator[Statistics]):
         """Class to manage fetching AnyList Statistics data."""
-    
+
         _name = "statistics"
         _update_interval = timedelta(minutes=15)
-    
+
         async def _async_update_internal(self) -> Statistics:
             """Fetch the latest statistics data from AnyList."""
             return await self.client.get_statistics()
-    
-    
+
+
     class AnyListRecipeCoordinator(AnyListDataUpdateCoordinator):
         """Class to manage fetching AnyList Recipe data."""
-    
+
         _name = "recipes"
         _update_interval = timedelta(minutes=30)
-    
+
         async def _async_update_internal(self):
     )           return await self.client.get_recipes()
     DOMAIN,
@@ -116,7 +125,6 @@ from aioAnyList import (
     ShoppingList,
     Statistics,
 )
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -167,7 +175,7 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
         try:
             return await self._async_update_internal()            from aiohttp import ClientSession
             from .exceptions import AnyListAuthenticationError, AnyListConnectionError
-            
+
             class AnyListClient:
                 def __init__(self, base_url: str, api_key: str):
                     self.base_url = base_url
@@ -176,8 +184,8 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
                     self.headers = {
                         "Authorization": f"Bearer {self.api_key}",
                         "Content-Type": "application/json",
-                    }                    
-            
+                    }
+
                 async def get_recipes(self) -> dict[str, list[Recipe]]:
         """Fetch recipes from AnyList."""
         url = f"{self.base_url}/recipes"
@@ -196,7 +204,8 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
         except Exception as error:
             raise AnyListConnectionError(f"Error fetching recipes: {error}") from error
   from aiohttp import ClientSession
-                from .exceptions import AnyListAuthenticationError, AnyListConnectionError
+
+  from .exceptions import AnyListAuthenticationError, AnyListConnectionError
 
 
 
@@ -388,7 +397,7 @@ class ConfigFlow(config_entries.ConfigFlow):
 
         return None
 
-    def async_get_options_flow(self, _config_entry): 
+    def async_get_options_flow(self, _config_entry):
         return OptionsFlow()
 
 
