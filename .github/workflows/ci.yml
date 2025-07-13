@@ -78,3 +78,5 @@ jobs:
       
       - name: Validate integration with hassfest
         uses: home-assistant/actions/hassfest@master
+        with:
+          path: ./custom_components/anylist

@@ -21,6 +21,12 @@ Can be manually triggered to automatically format code:
 
 ## Local Development
 
+### Quick validation:
+```bash
+# Run the validation script to check setup
+./scripts/test-setup.sh
+```
+
 ### Install development dependencies:
 ```bash
 pip install -r requirements-dev.txt
@@ -46,6 +52,12 @@ mypy custom_components/ --ignore-missing-imports
 ### Run tests:
 ```bash
 pytest tests/ -v
+```
+
+### Use pre-commit hooks (optional):
+```bash
+pip install pre-commit
+pre-commit install
 ```
 
 ## Configuration Files
