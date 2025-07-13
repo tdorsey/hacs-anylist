@@ -1,7 +1,7 @@
 """Tests for the anylist integration."""
 
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from custom_components.anylist.const import DOMAIN
 
