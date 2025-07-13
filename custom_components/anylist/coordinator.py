@@ -191,6 +191,8 @@ class AnyListRecipeCoordinator(
 ):
     """Class to manage fetching AnyList recipe data."""
 
+    _name = "recipe"
+    _update_interval = timedelta(minutes=10)
     async def _async_update_internal(self) -> dict[str, list[Recipe]]:
         """Fetch recipe data from AnyList."""
         return await self.client.get_recipes()
