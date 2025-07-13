@@ -1,12 +1,12 @@
 {
-  "version": "1.5.9",
+  "version": "1.0.0",
   "domain": "anylist",
-  "name": "Anylist",
+  "name": "AnyList",
   "config_flow": true,
-  "codeowners": ["@kevdliu"],
+  "codeowners": ["@tdorsey"],
   "dependencies": [],
-  "documentation": "https://github.com/kevdliu/hacs-anylist",
-  "issue_tracker": "https://github.com/kevdliu/hacs-anylist/issues",
+  "documentation": "https://github.com/tdorsey/hacs-anylist",
+  "issue_tracker": "https://github.com/tdorsey/hacs-anylist/issues",
   "integration_type": "service",
   "requirements": []
 }
