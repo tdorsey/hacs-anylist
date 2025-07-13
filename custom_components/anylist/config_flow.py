@@ -11,7 +11,7 @@ from homeassistant.helpers.selector import (
     NumberSelectorMode,
     TextSelector,
     TextSelectorConfig,
-    TextSelectorType
+    TextSelectorType,
 )
 
 import homeassistant.helpers.config_validation as cv
@@ -24,96 +24,76 @@ from .const import (
     CONF_PASSWORD,
     CONF_SERVER_BINARY,
     CONF_DEFAULT_LIST,
-    CONF_REFRESH_INTERVAL
+    CONF_REFRESH_INTERVAL,
 )
 
 _LOGGER = logging.getLogger(DOMAIN)
 
 STEP_ADDON_DATA_SCHEMA = vol.Schema(
     {
-        vol.Required(
-            CONF_SERVER_ADDR
-        ): TextSelector(
-            TextSelectorConfig(
-                type = TextSelectorType.URL
-            )
+        vol.Required(CONF_SERVER_ADDR): TextSelector(
+            TextSelectorConfig(type=TextSelectorType.URL)
         )
     }
 )
 
 STEP_BINARY_DATA_SCHEMA = vol.Schema(
     {
-        vol.Required(
-            CONF_SERVER_BINARY
-        ): TextSelector(
+        vol.Required(CONF_SERVER_BINARY): TextSelector(
+            TextSelectorConfig(type=TextSelectorType.TEXT)
+        ),
+        vol.Required(CONF_EMAIL): TextSelector(
+            TextSelectorConfig(type=TextSelectorType.EMAIL, autocomplete="email")
+        ),
+        vol.Required(CONF_PASSWORD): TextSelector(
             TextSelectorConfig(
-                type = TextSelectorType.TEXT
+                type=TextSelectorType.PASSWORD, autocomplete="current-password"
             )
         ),
-        vol.Required(
-            CONF_EMAIL
-        ): TextSelector(
-            TextSelectorConfig(
-                type = TextSelectorType.EMAIL,
-                autocomplete = "email"
-            )
-        ),
-        vol.Required(
-            CONF_PASSWORD
-        ): TextSelector(
-            TextSelectorConfig(
-                type = TextSelectorType.PASSWORD,
-                autocomplete = "current-password"
-            )
-        )
     }
 )
 
 STEP_INIT_DATA_SCHEMA = vol.Schema(
     {
-        vol.Optional(
-            CONF_DEFAULT_LIST,
-            default = ""
-        ): TextSelector(
-            TextSelectorConfig(
-                type = TextSelectorType.TEXT
-            )
+        vol.Optional(CONF_DEFAULT_LIST, default=""): TextSelector(
+            TextSelectorConfig(type=TextSelectorType.TEXT)
         ),
         vol.Optional(
             CONF_REFRESH_INTERVAL,
-            default = 30,
+            default=30,
         ): NumberSelector(
             NumberSelectorConfig(
-                min = 15,
-                max = 120,
-                step = 15,
-                unit_of_measurement = "minutes",
-                mode = NumberSelectorMode.SLIDER
+                min=15,
+                max=120,
+                step=15,
+                unit_of_measurement="minutes",
+                mode=NumberSelectorMode.SLIDER,
             )
-        )
+        ),
     }
 )
 
-class ConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
+
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
     async def async_step_user(self, user_input):
         return self.async_show_menu(
-            step_id = "user",
-            menu_options = {
+            step_id="user",
+            menu_options={
                 "addon": "Addon Server (Recommended)",
-                "binary": "Binary Server (Experimental)"
-            }
+                "binary": "Binary Server (Experimental)",
+            },
         )
 
     async def async_step_reconfigure(self, user_input):
         return self.async_show_menu(
-            step_id = "reconfigure",
-            menu_options = {
+            step_id="reconfigure",
+            menu_options={
                 "addon": "Addon Server (Recommended)",
-                "binary": "Binary Server (Experimental)"
-            }
+                "binary": "Binary Server (Experimental)",
+            },
         )
 
     async def async_step_addon(self, user_input):
@@ -126,20 +106,23 @@ class ConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
             if not errors:
                 if self.source == config_entries.SOURCE_RECONFIGURE:
                     return self.async_update_reload_and_abort(
-                        entry = self._get_reconfigure_entry(), data = user_input
+                        entry=self._get_reconfigure_entry(), data=user_input
                     )
                 else:
-                    return self.async_create_entry(title = "Anylist", data = user_input)
+                    return self.async_create_entry(
+                        title="Anylist",
+                        data=user_input,
+                    )
 
         return self.async_show_form(
-            step_id = "addon",
-            data_schema = STEP_ADDON_DATA_SCHEMA,
-            errors = errors
+            step_id="addon", data_schema=STEP_ADDON_DATA_SCHEMA, errors=errors
         )
 
     async def verify_addon_server(self, url):
         try:
-            r = await async_get_clientsession(self.hass).head(url, timeout = 2, allow_redirects = False)
+            r = await async_get_clientsession(self.hass).head(
+                url, timeout=2, allow_redirects=False
+            )
             return r.status < 500
         except Exception:
             return False
@@ -155,15 +138,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
             if not errors:
                 if self.source == config_entries.SOURCE_RECONFIGURE:
                     return self.async_update_reload_and_abort(
-                        entry = self._get_reconfigure_entry(), data = user_input
+                        entry=self._get_reconfigure_entry(), data=user_input
                     )
-                else:
-                    return self.async_create_entry(title = "Anylist", data = user_input)
+                    return self.async_create_entry(
+                        title="Anylist",
+                        data=user_input,
+                    )
+                    return self.async_create_entry(
+                        title="Anylist", 
+                        data=user_input
+            step_id="binary", 
+            data_schema=STEP_BINARY_DATA_SCHEMA, 
+            errors=errors
 
         return self.async_show_form(
-            step_id = "binary",
-            data_schema = STEP_BINARY_DATA_SCHEMA,
-            errors = errors
+            step_id="binary", data_schema=STEP_BINARY_DATA_SCHEMA, errors=errors
         )
 
     def verify_server_binary(self, path):
@@ -181,15 +170,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
     def async_get_options_flow(config_entry):
         return OptionsFlow()
 
+
 class OptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input):
         if user_input is not None:
-            return self.async_create_entry(data = user_input)
+            return self.async_create_entry(data=user_input)
 
         return self.async_show_form(
-            step_id = "init",
-            data_schema = self.add_suggested_values_to_schema(
+            step_id="init",
+            data_schema=self.add_suggested_values_to_schema(
                 STEP_INIT_DATA_SCHEMA, self.config_entry.options
-            )
+            ),
         )
