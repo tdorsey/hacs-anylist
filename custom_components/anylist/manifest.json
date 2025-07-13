@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.5.10",
   "domain": "anylist",
   "name": "AnyList",
   "config_flow": true,
