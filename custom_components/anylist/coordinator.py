@@ -13,6 +13,7 @@ from aioAnyList import (
     AnyListClient,
     AnyListConnectionError,
     Mealplan,
+    Recipe,
     MealplanEntryType,
     ShoppingItem,
     ShoppingList,
