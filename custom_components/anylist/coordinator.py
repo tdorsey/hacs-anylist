@@ -1,52 +1,32 @@
+"""Define an object to manage fetching AnyList data."""
+
 from __future__ import annotations
 
-import logging
-import os
-import stat
+from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import timedelta
+from typing import Generic, TypeVar
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from aioAnyList import (
     AnyListAuthenticationError,
     AnyListClient,
     AnyListConnectionError,
     Mealplan,
-    Recipe,
     MealplanEntryType,
+    Recipe,
     ShoppingItem,
     ShoppingList,
     Statistics,
 )
-from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.selector import (
-    NumberSelector,
-    NumberSelectorConfig,
-    NumberSelectorMode,
-    TextSelector,
-    TextSelectorConfig,
-    TextSelectorType,
-)
-
-# The import statement is already present and does not need to be duplicated.
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .const import (
-    CONF_DEFAULT_LIST,
-    CONF_EMAIL,
-    CONF_PASSWORD,
-    CONF_REFRESH_INTERVAL,
-    CONF_SERVER_ADDR,
-    CONF_SERVER_BINARY,
-    DOMAIN,
-    LOGGER,
-)
-from .models import ShoppingListData
+from .const import LOGGER
+
+_DataT = TypeVar("_DataT")
 
 WEEK = timedelta(days=7)
 
@@ -56,24 +36,32 @@ class AnyListData:
     """AnyList data type."""
 
     client: AnyListClient
-    mealplan_coordinator: AnyListMealplanCoordinator
-    shoppinglist_coordinator: AnyListShoppingListCoordinator
-    statistics_coordinator: AnyListStatisticsCoordinator
-    recipe_coordinator: AnyListRecipeCoordinator
+    mealplan_coordinator: "AnyListMealplanCoordinator"
+    shoppinglist_coordinator: "AnyListShoppingListCoordinator"
+    statistics_coordinator: "AnyListStatisticsCoordinator"
+    recipe_coordinator: "AnyListRecipeCoordinator"
 
 
-AnyListConfigEntry = ConfigEntry[AnyListData]
+@dataclass
+class ShoppingListData:
+    """Data class for shopping list data."""
+
+    shopping_list: ShoppingList
+    items: list[ShoppingItem]
 
 
-class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
+class AnyListDataUpdateCoordinator(DataUpdateCoordinator[_DataT], Generic[_DataT]):
     """Base coordinator."""
 
-    config_entry: AnyListConfigEntry
+    config_entry: ConfigEntry
     _name: str
     _update_interval: timedelta
 
     def __init__(
-        self, hass: HomeAssistant, config_entry: AnyListConfigEntry, client: AnyListClient
+        self,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        client: AnyListClient,
     ) -> None:
         """Initialize the AnyList data coordinator."""
         super().__init__(
@@ -92,7 +80,7 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
         except AnyListAuthenticationError as err:
             raise ConfigEntryAuthFailed from err
         except AnyListConnectionError as err:
-            raise UpdateFailed from err
+            raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     @abstractmethod
     async def _async_update_internal(self) -> _DataT:
@@ -120,14 +108,6 @@ class AnyListMealplanCoordinator(
         for meal in response.items:
             res[meal.entry_type].append(meal)
         return res
-
-
-@dataclass
-class ShoppingListData:
-    """Data class for shopping list data."""
-
-    shopping_list: ShoppingList
-    items: list[ShoppingItem]
 
 
 class AnyListShoppingListCoordinator(
@@ -164,9 +144,7 @@ class AnyListStatisticsCoordinator(AnyListDataUpdateCoordinator[Statistics]):
         return await self.client.get_statistics()
 
 
-class AnyListRecipeCoordinator(
-    AnyListDataUpdateCoordinator[dict[str, list[Recipe]]]
-):
+class AnyListRecipeCoordinator(AnyListDataUpdateCoordinator[dict[str, list[Recipe]]]):
     """Class to manage fetching AnyList recipe data."""
 
     _name = "recipe"

@@ -1,10 +1,12 @@
 import logging
 import os
 import stat
+from typing import Any
 
-# import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
     NumberSelector,
@@ -73,10 +75,14 @@ STEP_INIT_DATA_SCHEMA = vol.Schema(
 
 
 class ConfigFlow(config_entries.ConfigFlow):
-    DOMAIN = DOMAIN
+    """ConfigFlow for Anylist integration."""
+
+    domain = DOMAIN
     VERSION = 1
 
-    async def async_step_user(self, user_input):
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         return self.async_show_menu(
             step_id="user",
             menu_options={
@@ -85,7 +91,9 @@ class ConfigFlow(config_entries.ConfigFlow):
             },
         )
 
-    async def async_step_reconfigure(self, user_input):
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         return self.async_show_menu(
             step_id="reconfigure",
             menu_options={
@@ -94,7 +102,9 @@ class ConfigFlow(config_entries.ConfigFlow):
             },
         )
 
-    async def async_step_addon(self, user_input):
+    async def async_step_addon(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         errors = {}
         if user_input is not None:
             url = user_input[CONF_SERVER_ADDR]
@@ -113,7 +123,7 @@ class ConfigFlow(config_entries.ConfigFlow):
             step_id="addon", data_schema=STEP_ADDON_DATA_SCHEMA, errors=errors
         )
 
-    async def verify_addon_server(self, url):
+    async def verify_addon_server(self, url: str) -> bool:
         try:
             r = await async_get_clientsession(self.hass).head(
                 url, timeout=2, allow_redirects=False
@@ -122,7 +132,9 @@ class ConfigFlow(config_entries.ConfigFlow):
         except Exception:
             return False
 
-    async def async_step_binary(self, user_input):
+    async def async_step_binary(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         errors = {}
         if user_input is not None:
             path = user_input[CONF_SERVER_BINARY]
@@ -136,18 +148,13 @@ class ConfigFlow(config_entries.ConfigFlow):
                         entry=self._get_reconfigure_entry(), data=user_input
                     )
                 else:
-                    return self.async_create_entry(
-                        title="Anylist",
-                        data=user_input,
-                    )
+                    return self.async_create_entry(title="Anylist", data=user_input)
 
         return self.async_show_form(
-            step_id="binary",
-            data_schema=STEP_BINARY_DATA_SCHEMA,
-            errors=errors,
+            step_id="binary", data_schema=STEP_BINARY_DATA_SCHEMA, errors=errors
         )
 
-    def verify_server_binary(self, path):
+    def verify_server_binary(self, path: str) -> str | None:
         if not os.path.isfile(path):
             return "server_binary_not_found"
 
@@ -159,12 +166,16 @@ class ConfigFlow(config_entries.ConfigFlow):
 
         return None
 
-    def async_get_options_flow(self, config_entry):  # Added missing 'self'
+    def async_get_options_flow(
+        self, config_entry: ConfigEntry
+    ) -> config_entries.OptionsFlow:
         return OptionsFlow()
 
 
 class OptionsFlow(config_entries.OptionsFlow):
-    async def async_step_init(self, user_input):
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         if user_input is not None:
             return self.async_create_entry(data=user_input)
 

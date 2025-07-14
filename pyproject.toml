@@ -26,7 +26,9 @@ use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 88
 known_first_party = ["custom_components"]
-known_third_party = ["homeassistant"]
+known_third_party = ["homeassistant", "aioAnyList", "voluptuous", "aiohttp"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+force_alphabetical_sort_within_sections = true
 
 [tool.mypy]
 python_version = "3.11"
@@ -38,6 +40,12 @@ disallow_any_generics = true
 check_untyped_defs = true
 no_implicit_reexport = true
 disallow_untyped_defs = true
+no_site_packages = true
+exclude = [
+    "site-packages",
+    "\\.venv",
+    "venv"
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
