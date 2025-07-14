@@ -1,17 +1,11 @@
-from __future__ import annotations
-
-import logging
-import os
-import stat
-from abc import abstractmethod
 """Define an object to manage fetching AnyList data."""
 
+from __future__ import annotations
 
+from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import timedelta
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from aioAnyList import (
     AnyListAuthenticationError,
     AnyListClient,
@@ -23,34 +17,13 @@ from aioAnyList import (
     ShoppingList,
     Statistics,
 )
-from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, UpdateFailed
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.selector import (
-    NumberSelector,
-    NumberSelectorConfig,
-    NumberSelectorMode,
-    TextSelector,
-    TextSelectorConfig,
-    TextSelectorType,
-)
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-
-# The import statement is already present and does not need to be duplicated.
 from homeassistant.util import dt as dt_util
 
-from .const import (
-    CONF_DEFAULT_LIST,
-    CONF_EMAIL,
-    CONF_PASSWORD,
-    CONF_REFRESH_INTERVAL,
-    CONF_SERVER_ADDR,
-    CONF_SERVER_BINARY,
-    DOMAIN,
-    LOGGER,
-)
+from .const import DOMAIN, LOGGER
 
 WEEK = timedelta(days=7)
 
@@ -105,11 +78,6 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
     async def _async_update_internal(self) -> _DataT:
         """Fetch data from AnyList (to be implemented by subclasses)."""
         pass
-            raise UpdateFailed(f"Error communicating with API: {err}") from err
-
-    async def _async_update_internal(self) -> _DataT:
-        """Update method to be implemented by subclasses."""
-        raise NotImplementedError
 
 
 class AnyListMealplanCoordinator(
