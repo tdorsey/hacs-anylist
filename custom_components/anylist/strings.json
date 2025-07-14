@@ -56,10 +56,5 @@
           }
         }
       }
-    },
-    "mealplan_entry_type": "Meal Plan Entry Type",
-  "mealplan_entry_type__breakfast": "Breakfast",
-  "mealplan_entry_type__lunch": "Lunch",
-  "mealplan_entry_type__dinner": "Dinner",
-  "mealplan_entry_type__side": "Side"
+    }
 }

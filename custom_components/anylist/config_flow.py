@@ -81,7 +81,9 @@ class ConfigFlow(config_entries.ConfigFlow):
     domain = DOMAIN
     VERSION = 1
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         return self.async_show_menu(
             step_id="user",
             menu_options={
@@ -90,7 +92,9 @@ class ConfigFlow(config_entries.ConfigFlow):
             },
         )
 
-    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         return self.async_show_menu(
             step_id="reconfigure",
             menu_options={
@@ -99,7 +103,9 @@ class ConfigFlow(config_entries.ConfigFlow):
             },
         )
 
-    async def async_step_addon(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_addon(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         errors = {}
         if user_input is not None:
             url = user_input[CONF_SERVER_ADDR]
@@ -127,7 +133,9 @@ class ConfigFlow(config_entries.ConfigFlow):
         except Exception:
             return False
 
-    async def async_step_binary(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_binary(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         errors = {}
         if user_input is not None:
             path = user_input[CONF_SERVER_BINARY]
@@ -159,12 +167,16 @@ class ConfigFlow(config_entries.ConfigFlow):
 
         return None
 
-    def async_get_options_flow(self, config_entry: ConfigEntry) -> config_entries.OptionsFlow:
+    def async_get_options_flow(
+        self, config_entry: ConfigEntry
+    ) -> config_entries.OptionsFlow:
         return OptionsFlow()
 
 
 class OptionsFlow(config_entries.OptionsFlow):
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         if user_input is not None:
             return self.async_create_entry(data=user_input)
 
