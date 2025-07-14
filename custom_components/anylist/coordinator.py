@@ -1,48 +1,52 @@
-import datetime
-import logging
-
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-
-from .const import DOMAIN
-
-_LOGGER = logging.getLogger(DOMAIN)
-
-class AnylistUpdateCoordinator(DataUpdateCoordinator):
-
-    def __init__(self, hass, config_entry, list_name, refresh_interval):
-        super().__init__(hass, _LOGGER, config_entry = config_entry, name = f"Anylist {list_name}", update_interval = datetime.timedelta(minutes = refresh_interval))
-        self.list_name = list_name
-        self.hass = hass
-
-    async def _async_update_data(self):
-        code, items = await self.hass.data[DOMAIN].get_detailed_items(self.list_name)
-        return items
-"""Define an object to manage fetching AnyList data."""
-
 from __future__ import annotations
 
-from abc import abstractmethod
+import logging
+import os
+import stat
 from dataclasses import dataclass
 from datetime import timedelta
 
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from aioAnyList import (
     AnyListAuthenticationError,
     AnyListClient,
     AnyListConnectionError,
     Mealplan,
+    Recipe,
     MealplanEntryType,
     ShoppingItem,
     ShoppingList,
     Statistics,
 )
-
+from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
+
+# The import statement is already present and does not need to be duplicated.
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, LOGGER
+from .const import (
+    CONF_DEFAULT_LIST,
+    CONF_EMAIL,
+    CONF_PASSWORD,
+    CONF_REFRESH_INTERVAL,
+    CONF_SERVER_ADDR,
+    CONF_SERVER_BINARY,
+    DOMAIN,
+    LOGGER,
+)
+from .models import ShoppingListData
 
 WEEK = timedelta(days=7)
 
@@ -58,7 +62,7 @@ class AnyListData:
     recipe_coordinator: AnyListRecipeCoordinator
 
 
-type AnyListConfigEntry = ConfigEntry[AnyListData]
+AnyListConfigEntry = ConfigEntry[AnyListData]
 
 
 class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
@@ -84,50 +88,28 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
     async def _async_update_data(self) -> _DataT:
         """Fetch data from AnyList."""
         try:
-            return await self._async_update_internal()            from aiohttp import ClientSession
-            from .exceptions import AnyListAuthenticationError, AnyListConnectionError
-            
-            class AnyListClient:
-                def __init__(self, base_url: str, api_key: str):
-                    self.base_url = base_url
-                    self.api_key = api_key
-                    self.session = ClientSession()
-                    self.headers = {
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json",
-                    }                    
-            
-                async def get_recipes(self) -> dict[str, list[Recipe]]:
-        """Fetch recipes from AnyList."""
-        url = f"{self.base_url}/recipes"
+            return await self._async_update_internal()
+        except AnyListAuthenticationError as err:
+            raise ConfigEntryAuthFailed from err
+        except AnyListConnectionError as err:
+            raise UpdateFailed from err
 
-        try:
-            async with self.session.get(url, headers=self.headers) as response:
-                if response.status == 401:
-                    raise AnyListAuthenticationError("Invalid API key or token.")
-                elif response.status != 200:
-                    raise AnyListConnectionError(f"Failed to fetch recipes: {response.status}")
-
-                data = await response.json()
-                # Parse the response into the expected format
-                return self._parse_recipes(data)
-
-        except Exception as error:
-            raise AnyListConnectionError(f"Error fetching recipes: {error}") from error
-  from aiohttp import ClientSession
-                from .exceptions import AnyListAuthenticationError, AnyListConnectionError
-
+    @abstractmethod
+    async def _async_update_internal(self) -> _DataT:
+        """Fetch data from AnyList (to be implemented by subclasses)."""
+        pass
 
 
 class AnyListMealplanCoordinator(
     AnyListDataUpdateCoordinator[dict[MealplanEntryType, list[Mealplan]]]
 ):
-    """Class to manage fetching AnyList data."""
+    """Class to manage fetching AnyList mealplan data."""
 
     _name = "mealplan"
     _update_interval = timedelta(hours=1)
 
     async def _async_update_internal(self) -> dict[MealplanEntryType, list[Mealplan]]:
+        """Fetch mealplan data from AnyList."""
         next_week = dt_util.now() + WEEK
         current_date = dt_util.now().date()
         next_week_date = next_week.date()
@@ -151,23 +133,20 @@ class ShoppingListData:
 class AnyListShoppingListCoordinator(
     AnyListDataUpdateCoordinator[dict[str, ShoppingListData]]
 ):
-    """Class to manage fetching AnyList Shopping list data."""
+    """Class to manage fetching AnyList shopping list data."""
 
     _name = "shopping_list"
     _update_interval = timedelta(minutes=5)
 
-    async def _async_update_internal(
-        self,
-    ) -> dict[str, ShoppingListData]:
+    async def _async_update_internal(self) -> dict[str, ShoppingListData]:
+        """Fetch shopping list data from AnyList."""
         shopping_list_items = {}
         shopping_lists = (await self.client.get_shopping_lists()).items
         for shopping_list in shopping_lists:
             shopping_list_id = shopping_list.list_id
-
             shopping_items = (
                 await self.client.get_shopping_items(shopping_list_id)
             ).items
-
             shopping_list_items[shopping_list_id] = ShoppingListData(
                 shopping_list=shopping_list, items=shopping_items
             )
@@ -175,14 +154,13 @@ class AnyListShoppingListCoordinator(
 
 
 class AnyListStatisticsCoordinator(AnyListDataUpdateCoordinator[Statistics]):
-    """Class to manage fetching AnyList Statistics data."""
+    """Class to manage fetching AnyList statistics data."""
 
     _name = "statistics"
     _update_interval = timedelta(minutes=15)
 
-    async def _async_update_internal(
-        self,
-    ) -> Statistics:
+    async def _async_update_internal(self) -> Statistics:
+        """Fetch statistics data from AnyList."""
         return await self.client.get_statistics()
 
 
@@ -193,6 +171,7 @@ class AnyListRecipeCoordinator(
 
     _name = "recipe"
     _update_interval = timedelta(minutes=10)
+
     async def _async_update_internal(self) -> dict[str, list[Recipe]]:
         """Fetch recipe data from AnyList."""
         return await self.client.get_recipes()
