@@ -8,9 +8,10 @@ repos:
       - id: check-added-large-files
 
   - repo: https://github.com/psf/black
-    rev: 23.9.1
+    rev: 24.8.0
     hooks:
       - id: black
+        args: [--safe, --quiet]
         language_version: python3
         files: ^custom_components/
 

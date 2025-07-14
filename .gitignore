@@ -1,6 +1,5 @@
-__pycache__
-.venv
 __pycache__/
+.venv
 *.py[cod]
 *$py.class
 
@@ -109,7 +108,6 @@ dmypy.json
 
 # OS
 .DS_Store
-.DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
