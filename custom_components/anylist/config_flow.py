@@ -72,7 +72,9 @@ STEP_INIT_DATA_SCHEMA = vol.Schema(
 
 
 class ConfigFlow(config_entries.ConfigFlow):
-    DOMAIN = DOMAIN
+    """ConfigFlow for Anylist integration."""
+    
+    domain = DOMAIN
     VERSION = 1
 
     async def async_step_user(self, user_input):
@@ -135,15 +137,10 @@ class ConfigFlow(config_entries.ConfigFlow):
                         entry=self._get_reconfigure_entry(), data=user_input
                     )
                 else:
-                    return self.async_create_entry(
-                        title="Anylist",
-                        data=user_input,
-                    )
+                    return self.async_create_entry(title="Anylist", data=user_input)
 
         return self.async_show_form(
-            step_id="binary",
-            data_schema=STEP_BINARY_DATA_SCHEMA,
-            errors=errors,
+            step_id="binary", data_schema=STEP_BINARY_DATA_SCHEMA, errors=errors
         )
 
     def verify_server_binary(self, path):
