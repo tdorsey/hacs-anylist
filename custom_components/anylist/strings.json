@@ -1,61 +1,65 @@
 {
-  "config": {
-    "step": {
-      "user": {
-        "title": "Server Installation",
-        "description": "Select Anylist server installation method"
-      },
-      "reconfigure": {
-        "title": "Server Installation",
-        "description": "Modify Anylist server installation method"
-      },
-      "addon": {
-        "title": "Addon Server",
-        "description": "Make sure the Anylist addon is installed and properly configured",
-        "data": {
-          "server_addr": "Addon Server URL"
+    "config": {
+      "step": {
+        "user": {
+          "title": "Server Installation",
+          "description": "Select Anylist server installation method"
         },
-        "data_description": {
-          "server_addr": "Full fledged URL including scheme and port (Example: http://192.168.1.2:89453)"
+        "reconfigure": {
+          "title": "Server Installation",
+          "description": "Modify Anylist server installation method"
+        },
+        "addon": {
+          "title": "Addon Server",
+          "description": "Make sure the Anylist addon is installed and properly configured",
+          "data": {
+            "server_addr": "Addon Server URL"
+          },
+          "data_description": {
+            "server_addr": "Full fledged URL including scheme and port (Example: http://192.168.1.2:89453)"
+          }
+        },
+        "binary": {
+          "title": "Binary Server",
+          "description": "The server binary can be downloaded from https://github.com/kevdliu/hassio-addon-anylist/releases",
+          "data": {
+            "server_binary": "Server Binary Location",
+            "email": "Email",
+            "password": "Password"
+          },
+          "data_description": {
+            "server_binary": "Server binary file path (Example: /config/anylist_server)",
+            "email": "Anylist account email",
+            "password": "Anylist account password"
+          }
         }
       },
-      "binary": {
-        "title": "Binary Server",
-        "description": "The server binary can be downloaded from https://github.com/kevdliu/hassio-addon-anylist/releases",
-        "data": {
-          "server_binary": "Server Binary Location",
-          "email": "Email",
-          "password": "Password"
-        },
-        "data_description": {
-          "server_binary": "Server binary file path (Example: /config/anylist_server)",
-          "email": "Anylist account email",
-          "password": "Anylist account password"
+      "error": {
+        "addon_server_cannot_connect": "Failed to connect to addon server",
+        "server_binary_not_found": "Failed to locate server binary",
+        "server_binary_wrong_permissions": "Failed to fix server binary permissions"
+      },
+      "abort": {
+        "reconfigure_successful": "Anylist successfully reconfigured"
+      }
+    },
+    "options": {
+      "step": {
+        "init": {
+          "data": {
+            "default_list": "Default List Name",
+            "refresh_interval": "Refresh Interval"
+          },
+          "data_description": {
+            "default_list": "Default list is used when list name is otherwise not specified",
+            "refresh_interval": "How often lists should be refreshed from Anylist"
+          }
         }
       }
     },
-    "error": {
-      "addon_server_cannot_connect": "Failed to connect to addon server",
-      "server_binary_not_found": "Failed to locate server binary",
-      "server_binary_wrong_permissions": "Failed to fix server binary permissions"
-    },
-    "abort": {
-      "reconfigure_successful": "Anylist successfully reconfigured"
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "data": {
-          "default_list": "Default List Name",
-          "refresh_interval": "Refresh Interval"
-        },
-        "data_description": {
-          "default_list": "Default list is used when list name is otherwise not specified",
-          "refresh_interval": "How often lists should be refreshed from Anylist"
-        }
-      }
-    }
-  },
-  "mealplan_entry_type": "Meal Plan Entry Type"
+    "mealplan_entry_type": "Meal Plan Entry Type",
+    "mealplan_entry_type__breakfast": "Breakfast",
+    "mealplan_entry_type__lunch": "Lunch",
+    "mealplan_entry_type__dinner": "Dinner",
+    "mealplan_entry_type__side": "Side"
 }
