@@ -1,7 +1,7 @@
 """Tests for the anylist integration."""
 
 import pytest
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 from custom_components.anylist.const import DOMAIN
 
@@ -24,6 +24,18 @@ async def test_async_setup_entry():
     hass.bus = Mock()
     hass.config = Mock()
     hass.config.path = Mock(return_value="/tmp/test_credentials")
+
+    config_entry = Mock()
+    config_entry.data = {
+        "server_addr": "http://localhost:8080",
+        "email": "test@example.com",
+        "password": "test",
+        "server_binary": None,
+    }
+    config_entry.options = {}
+
+    # Mock the async platforms setup
+    hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)
     
     config_entry = Mock()
     config_entry.data = {
