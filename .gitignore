@@ -97,6 +97,7 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+__pycache__
 
 # IDE
 .vscode/
@@ -107,7 +108,6 @@ dmypy.json
 
 # OS
 .DS_Store
-.DS_Store?
 ._*
 .Spotlight-V100
 .Trashes

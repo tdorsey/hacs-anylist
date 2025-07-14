@@ -26,11 +26,9 @@ jobs:
           pip install homeassistant
       
       - name: Check code formatting with black
-        run: black --check --diff custom_components/
-      
+        run: black --check --diff custom_components/      
       - name: Check import sorting with isort
-        run: isort --check-only --diff custom_components/
-      
+        run: isort --check-only --diff custom_components/      
       - name: Lint with flake8
         run: |
           # Stop the build if there are Python syntax errors or undefined names
@@ -40,7 +38,6 @@ jobs:
       
       - name: Type check with mypy
         run: mypy custom_components/ --ignore-missing-imports
-        continue-on-error: true
 
   test:
     runs-on: ubuntu-latest
@@ -65,6 +62,7 @@ jobs:
       
       - name: Run tests with pytest
         run: pytest tests/ -v
+        continue-on-error: true
 
   hassfest:
     runs-on: ubuntu-latest

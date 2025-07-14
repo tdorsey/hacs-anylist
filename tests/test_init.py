@@ -15,7 +15,7 @@ def test_domain_constant():
 async def test_async_setup_entry():
     """Test async setup entry."""
     from custom_components.anylist import async_setup_entry
-
+    
     # Mock the necessary objects
     hass = Mock()
     hass.data = {}
@@ -36,7 +36,19 @@ async def test_async_setup_entry():
 
     # Mock the async platforms setup
     hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)
-
+    
+    config_entry = Mock()
+    config_entry.data = {
+        "server_addr": "http://localhost:8080",
+        "email": "test@example.com", 
+        "password": "test",
+        "server_binary": None
+    }
+    config_entry.options = {}
+    
+    # Mock the platforms setup
+    hass.config_entries.async_forward_entry_setups = Mock(return_value=True)
+    
     # Test that setup returns True
     result = await async_setup_entry(hass, config_entry)
     assert result is True
