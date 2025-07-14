@@ -1,10 +1,17 @@
+from __future__ import annotations
+
+import logging
+import os
+import stat
+from abc import abstractmethod
 """Define an object to manage fetching AnyList data."""
 
-from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import timedelta
 
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from aioAnyList import (
     AnyListAuthenticationError,
     AnyListClient,
@@ -16,14 +23,34 @@ from aioAnyList import (
     ShoppingList,
     Statistics,
 )
-
+from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, UpdateFailed
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+
+# The import statement is already present and does not need to be duplicated.
 from homeassistant.util import dt as dt_util
 
-from .const import LOGGER
+from .const import (
+    CONF_DEFAULT_LIST,
+    CONF_EMAIL,
+    CONF_PASSWORD,
+    CONF_REFRESH_INTERVAL,
+    CONF_SERVER_ADDR,
+    CONF_SERVER_BINARY,
+    DOMAIN,
+    LOGGER,
+)
 
 WEEK = timedelta(days=7)
 
@@ -39,7 +66,7 @@ class AnyListData:
     recipe_coordinator: AnyListRecipeCoordinator
 
 
-type AnyListConfigEntry = ConfigEntry[AnyListData]
+AnyListConfigEntry = ConfigEntry[AnyListData]
 
 
 class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
@@ -50,7 +77,10 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
     _update_interval: timedelta
 
     def __init__(
-        self, hass: HomeAssistant, config_entry: AnyListConfigEntry, client: AnyListClient
+        self,
+        hass: HomeAssistant,
+        config_entry: AnyListConfigEntry,
+        client: AnyListClient,
     ) -> None:
         """Initialize the AnyList data coordinator."""
         super().__init__(
@@ -69,6 +99,12 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
         except AnyListAuthenticationError as err:
             raise ConfigEntryAuthFailed from err
         except AnyListConnectionError as err:
+            raise UpdateFailed from err
+
+    @abstractmethod
+    async def _async_update_internal(self) -> _DataT:
+        """Fetch data from AnyList (to be implemented by subclasses)."""
+        pass
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     async def _async_update_internal(self) -> _DataT:
@@ -79,12 +115,13 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
 class AnyListMealplanCoordinator(
     AnyListDataUpdateCoordinator[dict[MealplanEntryType, list[Mealplan]]]
 ):
-    """Class to manage fetching AnyList data."""
+    """Class to manage fetching AnyList mealplan data."""
 
     _name = "mealplan"
     _update_interval = timedelta(hours=1)
 
     async def _async_update_internal(self) -> dict[MealplanEntryType, list[Mealplan]]:
+        """Fetch mealplan data from AnyList."""
         next_week = dt_util.now() + WEEK
         current_date = dt_util.now().date()
         next_week_date = next_week.date()
@@ -108,23 +145,20 @@ class ShoppingListData:
 class AnyListShoppingListCoordinator(
     AnyListDataUpdateCoordinator[dict[str, ShoppingListData]]
 ):
-    """Class to manage fetching AnyList Shopping list data."""
+    """Class to manage fetching AnyList shopping list data."""
 
     _name = "shopping_list"
     _update_interval = timedelta(minutes=5)
 
-    async def _async_update_internal(
-        self,
-    ) -> dict[str, ShoppingListData]:
+    async def _async_update_internal(self) -> dict[str, ShoppingListData]:
+        """Fetch shopping list data from AnyList."""
         shopping_list_items = {}
         shopping_lists = (await self.client.get_shopping_lists()).items
         for shopping_list in shopping_lists:
             shopping_list_id = shopping_list.list_id
-
             shopping_items = (
                 await self.client.get_shopping_items(shopping_list_id)
             ).items
-
             shopping_list_items[shopping_list_id] = ShoppingListData(
                 shopping_list=shopping_list, items=shopping_items
             )
@@ -132,20 +166,17 @@ class AnyListShoppingListCoordinator(
 
 
 class AnyListStatisticsCoordinator(AnyListDataUpdateCoordinator[Statistics]):
-    """Class to manage fetching AnyList Statistics data."""
+    """Class to manage fetching AnyList statistics data."""
 
     _name = "statistics"
     _update_interval = timedelta(minutes=15)
 
-    async def _async_update_internal(
-        self,
-    ) -> Statistics:
+    async def _async_update_internal(self) -> Statistics:
+        """Fetch statistics data from AnyList."""
         return await self.client.get_statistics()
 
 
-class AnyListRecipeCoordinator(
-    AnyListDataUpdateCoordinator[dict[str, list[Recipe]]]
-):
+class AnyListRecipeCoordinator(AnyListDataUpdateCoordinator[dict[str, list[Recipe]]]):
     """Class to manage fetching AnyList recipe data."""
 
     _name = "recipe"
@@ -154,3 +185,31 @@ class AnyListRecipeCoordinator(
     async def _async_update_internal(self) -> dict[str, list[Recipe]]:
         """Fetch recipe data from AnyList."""
         return await self.client.get_recipes()
+
+
+class AnylistUpdateCoordinator(DataUpdateCoordinator):
+    """Define an object to manage fetching AnyList data."""
+
+    def __init__(self, hass, config_entry, list_name, refresh_interval):
+        """Initialize the AnyList data coordinator."""
+        super().__init__(
+            hass,
+            LOGGER,
+            config_entry=config_entry,
+            name=f"Anylist {list_name}",
+            update_interval=timedelta(minutes=refresh_interval),
+        )
+        self.list_name = list_name
+        self.hass = hass
+
+    async def _async_update_data(self):
+        """Fetch data from AnyList."""
+        code, items = await self.hass.data[DOMAIN].get_detailed_items(self.list_name)
+        if code != 200:
+            LOGGER.error(
+                "Failed to fetch data for list '%s': code %s", self.list_name, code
+            )
+            raise UpdateFailed(
+                f"Error fetching data for list '{self.list_name}': code {code}"
+            )
+        return items

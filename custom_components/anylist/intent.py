@@ -1,7 +1,7 @@
 import logging
 
-from homeassistant.helpers import intent
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers import intent
 
 from .const import DOMAIN
 
@@ -11,10 +11,12 @@ INTENT_ADD_ITEM = "AnylistAddItem"
 INTENT_REMOVE_ITEM = "AnylistRemoveItem"
 INTENT_GET_ITEMS = "AnylistGetItems"
 
+
 async def async_setup_intents(hass):
     intent.async_register(hass, AddItemIntent())
     intent.async_register(hass, RemoveItemIntent())
     intent.async_register(hass, GetItemsIntent())
+
 
 class AddItemIntent(intent.IntentHandler):
 
@@ -29,11 +31,14 @@ class AddItemIntent(intent.IntentHandler):
         if code == 200 or code == 304:
             speech = "I have added {} to your list.".format(item)
         else:
-            speech = "An error has occurred while adding the item. Check logs for details."
+            speech = (
+                "An error has occurred while adding the item. Check logs for details."
+            )
 
         response = intent_obj.create_response()
         response.async_set_speech(speech)
         return response
+
 
 class RemoveItemIntent(intent.IntentHandler):
 
@@ -48,11 +53,14 @@ class RemoveItemIntent(intent.IntentHandler):
         if code == 200 or code == 304:
             speech = "I have removed {} from your list.".format(item)
         else:
-            speech = "An error has occurred while removing the item. Check logs for details."
+            speech = (
+                "An error has occurred while removing the item. Check logs for details."
+            )
 
         response = intent_obj.create_response()
         response.async_set_speech(speech)
         return response
+
 
 class GetItemsIntent(intent.IntentHandler):
 
