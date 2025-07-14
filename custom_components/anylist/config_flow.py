@@ -1,7 +1,6 @@
 import logging
 import os
 import stat
-
 from typing import Any
 
 import voluptuous as vol
