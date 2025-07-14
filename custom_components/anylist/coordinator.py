@@ -4,6 +4,9 @@ import logging
 import os
 import stat
 from abc import abstractmethod
+"""Define an object to manage fetching AnyList data."""
+
+
 from dataclasses import dataclass
 from datetime import timedelta
 
@@ -102,6 +105,11 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
     async def _async_update_internal(self) -> _DataT:
         """Fetch data from AnyList (to be implemented by subclasses)."""
         pass
+            raise UpdateFailed(f"Error communicating with API: {err}") from err
+
+    async def _async_update_internal(self) -> _DataT:
+        """Update method to be implemented by subclasses."""
+        raise NotImplementedError
 
 
 class AnyListMealplanCoordinator(
