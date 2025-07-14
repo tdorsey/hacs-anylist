@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python version matrix
         id: set-matrix
         run: |
-          echo 'python-versions=["3.12", "3.13"]' >> $GITHUB_OUTPUT
+          echo 'python-versions=["3.11", "3.12", "3.13"]' >> $GITHUB_OUTPUT
 
   lint:
     runs-on: ubuntu-latest
