@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import logging
+from typing import Any
 
 import homeassistant.helpers.config_validation as cv
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import intent
 
 from .const import DOMAIN
@@ -12,7 +16,7 @@ INTENT_REMOVE_ITEM = "AnylistRemoveItem"
 INTENT_GET_ITEMS = "AnylistGetItems"
 
 
-async def async_setup_intents(hass):
+async def async_setup_intents(hass: HomeAssistant) -> None:
     intent.async_register(hass, AddItemIntent())
     intent.async_register(hass, RemoveItemIntent())
     intent.async_register(hass, GetItemsIntent())
@@ -23,7 +27,7 @@ class AddItemIntent(intent.IntentHandler):
     intent_type = INTENT_ADD_ITEM
     slot_schema = {"item": cv.string}
 
-    async def async_handle(self, intent_obj: intent.Intent):
+    async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         slots = self.async_validate_slots(intent_obj.slots)
         item = slots["item"]["value"]
         code = await intent_obj.hass.data[DOMAIN].add_item(item.capitalize())
@@ -45,7 +49,7 @@ class RemoveItemIntent(intent.IntentHandler):
     intent_type = INTENT_REMOVE_ITEM
     slot_schema = {"item": cv.string}
 
-    async def async_handle(self, intent_obj: intent.Intent):
+    async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         slots = self.async_validate_slots(intent_obj.slots)
         item = slots["item"]["value"]
         code = await intent_obj.hass.data[DOMAIN].remove_item_by_name(item.capitalize())
@@ -66,7 +70,7 @@ class GetItemsIntent(intent.IntentHandler):
 
     intent_type = INTENT_GET_ITEMS
 
-    async def async_handle(self, intent_obj: intent.Intent):
+    async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         code, items = await intent_obj.hass.data[DOMAIN].get_items()
 
         if code != 200:
@@ -80,7 +84,7 @@ class GetItemsIntent(intent.IntentHandler):
         response.async_set_speech(speech)
         return response
 
-    def format_items(self, items):
+    def format_items(self, items: list[str]) -> str:
         count = len(items)
         if count == 1:
             return items[0]

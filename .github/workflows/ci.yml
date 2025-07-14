@@ -6,16 +6,25 @@ name: CI
   pull_request:
     branches: [ main ]
 
-env:
-  PYTHON_VERSIONS: '["3.11", "3.12", "3.13"]'
-
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    name: Setup Matrix
+    outputs:
+      python-versions: ${{ steps.set-matrix.outputs.python-versions }}
+    steps:
+      - name: Set up Python version matrix
+        id: set-matrix
+        run: |
+          echo 'python-versions=["3.11", "3.12", "3.13"]' >> $GITHUB_OUTPUT
+
   lint:
     runs-on: ubuntu-latest
     name: Lint
+    needs: setup
     strategy:
       matrix:
-        python-version: ${{ fromJson(env.PYTHON_VERSIONS) }}
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
     steps:
       - name: Check out code from GitHub
         uses: actions/checkout@v4
@@ -47,12 +56,11 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    needs:
-      - lint
+    needs: [setup, lint]
     name: Test
     strategy:
       matrix:
-        python-version: ${{ fromJson(env.PYTHON_VERSIONS) }}
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
     steps:
       - name: Check out code from GitHub
         uses: actions/checkout@v4
