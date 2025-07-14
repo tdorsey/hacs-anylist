@@ -1,27 +1,7 @@
-import datetime
-import logging
-
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-
-from .const import DOMAIN
-
-_LOGGER = logging.getLogger(DOMAIN)
-
-class AnylistUpdateCoordinator(DataUpdateCoordinator):
-
-    def __init__(self, hass, config_entry, list_name, refresh_interval):
-        super().__init__(hass, _LOGGER, config_entry = config_entry, name = f"Anylist {list_name}", update_interval = datetime.timedelta(minutes = refresh_interval))
-        self.list_name = list_name
-        self.hass = hass
-
-    async def _async_update_data(self):
-        code, items = await self.hass.data[DOMAIN].get_detailed_items(self.list_name)
-        return items
 """Define an object to manage fetching AnyList data."""
 
 from __future__ import annotations
 
-from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import timedelta
 
@@ -31,6 +11,7 @@ from aioAnyList import (
     AnyListConnectionError,
     Mealplan,
     MealplanEntryType,
+    Recipe,
     ShoppingItem,
     ShoppingList,
     Statistics,
@@ -42,7 +23,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, LOGGER
+from .const import LOGGER
 
 WEEK = timedelta(days=7)
 
@@ -84,39 +65,15 @@ class AnyListDataUpdateCoordinator[_DataT](DataUpdateCoordinator[_DataT]):
     async def _async_update_data(self) -> _DataT:
         """Fetch data from AnyList."""
         try:
-            return await self._async_update_internal()            from aiohttp import ClientSession
-            from .exceptions import AnyListAuthenticationError, AnyListConnectionError
-            
-            class AnyListClient:
-                def __init__(self, base_url: str, api_key: str):
-                    self.base_url = base_url
-                    self.api_key = api_key
-                    self.session = ClientSession()
-                    self.headers = {
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json",
-                    }                    
-            
-                async def get_recipes(self) -> dict[str, list[Recipe]]:
-        """Fetch recipes from AnyList."""
-        url = f"{self.base_url}/recipes"
+            return await self._async_update_internal()
+        except AnyListAuthenticationError as err:
+            raise ConfigEntryAuthFailed from err
+        except AnyListConnectionError as err:
+            raise UpdateFailed(f"Error communicating with API: {err}") from err
 
-        try:
-            async with self.session.get(url, headers=self.headers) as response:
-                if response.status == 401:
-                    raise AnyListAuthenticationError("Invalid API key or token.")
-                elif response.status != 200:
-                    raise AnyListConnectionError(f"Failed to fetch recipes: {response.status}")
-
-                data = await response.json()
-                # Parse the response into the expected format
-                return self._parse_recipes(data)
-
-        except Exception as error:
-            raise AnyListConnectionError(f"Error fetching recipes: {error}") from error
-  from aiohttp import ClientSession
-                from .exceptions import AnyListAuthenticationError, AnyListConnectionError
-
+    async def _async_update_internal(self) -> _DataT:
+        """Update method to be implemented by subclasses."""
+        raise NotImplementedError
 
 
 class AnyListMealplanCoordinator(
@@ -193,6 +150,7 @@ class AnyListRecipeCoordinator(
 
     _name = "recipe"
     _update_interval = timedelta(minutes=10)
+
     async def _async_update_internal(self) -> dict[str, list[Recipe]]:
         """Fetch recipe data from AnyList."""
         return await self.client.get_recipes()
