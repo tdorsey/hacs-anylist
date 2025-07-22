@@ -54,7 +54,29 @@ mypy custom_components/ --ignore-missing-imports
 pytest tests/ -v
 ```
 
-### Use pre-commit hooks (optional):
+### Use pre-commit hooks (recommended):
+Pre-commit hooks are configured to automatically run formatting, linting, and type checking before each commit, ensuring consistent code quality.
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install the git hook scripts
+pre-commit install
+
+# Run hooks on all files (optional)
+pre-commit run --all-files
+```
+
+Once installed, the hooks will automatically run before each commit. The following checks are performed:
+- **Formatting**: Code formatting with `black`
+- **Import sorting**: Import organization with `isort`
+- **Linting**: Code quality checks with `flake8`
+- **Type checking**: Static type analysis with `mypy`
+- **Basic checks**: Trailing whitespace, end-of-file fixes, and YAML validation
+
+### Manual validation:
+If you prefer to run tools manually:
 ```bash
 pip install pre-commit
 pre-commit install

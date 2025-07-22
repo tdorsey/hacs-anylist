@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.core import HomeAssistant
@@ -74,7 +73,10 @@ class GetItemsIntent(intent.IntentHandler):
         code, items = await intent_obj.hass.data[DOMAIN].get_items()
 
         if code != 200:
-            speech = "An error has occurred while getting the items on your list. Check logs for details."
+            speech = (
+                "An error has occurred while getting the items on your list. "
+                "Check logs for details."
+            )
         elif len(items) == 0:
             speech = "There are no items on your list."
         else:

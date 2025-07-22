@@ -18,11 +18,11 @@ After installing the custom integration, you have to add the integration to Home
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=anylist)
 
 ## Configuration
-The integration will prompt for the address of the [Anylist Home Assistant addon](https://github.com/kevdliu/hassio-addon-anylist) server during setup. The address includes the scheme (currently only plain-text http is supported), hostname or IP, and port of the server. For example, if you're running the addon locally and have it configured to listen on port 1234, the server address would be `http://127.0.0.1:1234`. Please do not include a trailing slash at the end of the address. 
+The integration will prompt for the address of the [Anylist Home Assistant addon](https://github.com/kevdliu/hassio-addon-anylist) server during setup. The address includes the scheme (currently only plain-text http is supported), hostname or IP, and port of the server. For example, if you're running the addon locally and have it configured to listen on port 1234, the server address would be `http://127.0.0.1:1234`. Please do not include a trailing slash at the end of the address.
 
 
 ## Usage
-There are three ways to use this integration: service calls, [Home Assistant To-do lists](https://www.home-assistant.io/integrations/todo/), and Home Assistant intents. 
+There are three ways to use this integration: service calls, [Home Assistant To-do lists](https://www.home-assistant.io/integrations/todo/), and Home Assistant intents.
 
 ### Service Calls
 The integration has six services: `anylist.add_item`, `anylist.remove_item`, `anylist.check_item`, `anylist.uncheck_item`, `anylist.get_items`, and `anylist.get_all_items`.
@@ -156,7 +156,7 @@ The integration supports the to-do lists feature introduced in [Home Assistant 2
 If you wish to use this integration with [Home Assistant Assist](https://www.home-assistant.io/voice_control/), Home Assistant 2023.12.0 added support for adding items to to-do lists using intents. For more details, see [built-in intents](https://developers.home-assistant.io/docs/intent_builtin/) and [the intents repository](https://github.com/home-assistant/intents).
 
 
-However, the built-in intents are very limited in functionality. It currently only supports adding items to lists. For the ability to remove and query items, custom sentences need to be added. 
+However, the built-in intents are very limited in functionality. It currently only supports adding items to lists. For the ability to remove and query items, custom sentences need to be added.
 To add custom sentences, download and place the `custom_sentences` directory in this repository into the `config` directory of your Home Assistant installation. For more details, see [Adding support for custom sentences](https://www.home-assistant.io/integrations/conversation/#adding-custom-sentences).
 
 
@@ -169,9 +169,9 @@ The `custom_sentences` directory contains a few starter commands allowing you to
 Slight sentence variations are supported in order to capture more commands. If you wish to customize the commands yourself, see [Template sentence syntax](https://developers.home-assistant.io/docs/voice/intent-recognition/template-sentence-syntax/).
 
 #### Automation
-Home Assistant 2023.8.0 introduced support for [wildcards in sentence triggers](https://www.home-assistant.io/blog/2023/08/02/release-20238/#wildcard-support-for-sentence-triggers) for automations. As a result, you can build your own Anylist automation by combining [sentence triggers](https://www.home-assistant.io/docs/automation/trigger/#sentence-trigger) and the service calls provided by this integration to match your own needs. 
+Home Assistant 2023.8.0 introduced support for [wildcards in sentence triggers](https://www.home-assistant.io/blog/2023/08/02/release-20238/#wildcard-support-for-sentence-triggers) for automations. As a result, you can build your own Anylist automation by combining [sentence triggers](https://www.home-assistant.io/docs/automation/trigger/#sentence-trigger) and the service calls provided by this integration to match your own needs.
 
-If you wish, you can also import these pre-built blueprints into your Home Assistant to get started quickly. 
+If you wish, you can also import these pre-built blueprints into your Home Assistant to get started quickly.
 
 
 Adding an item:
@@ -180,7 +180,7 @@ Adding an item:
 [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgist.github.com%2Fkevdliu%2F0c37c29173de949c1c49953ad2cea2ac)
 
 
-Removing an item: 
+Removing an item:
 
 
 [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgist.github.com%2Fkevdliu%2F8158fcf0c42a0a5128abc6492d3b0a4b)
