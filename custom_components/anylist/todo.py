@@ -25,7 +25,6 @@ from .const import (
     CONF_REFRESH_INTERVAL,
     DOMAIN,
 )
-from .coordinator import AnyListDataUpdateCoordinator
 
 
 class AnyListUpdateCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
